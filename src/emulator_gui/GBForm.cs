@@ -28,8 +28,8 @@ namespace emulator_gui {
                 gameboy = new gb(openGBRomDialog.FileName);
                 //System.IO.StreamReader sr = new
                 //   System.IO.StreamReader(openGBRomDialog.FileName);
-                MessageBox.Show(openGBRomDialog.FileName);
-                
+                //MessageBox.Show(openGBRomDialog.FileName);
+                gameboy.start();
             }
         }
 
