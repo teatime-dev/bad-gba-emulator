@@ -13,19 +13,31 @@ namespace emulator_gui {
         public testform() {
             InitializeComponent();
         }
-        private byte A, B, C, D, E, F, H, L;
-        private ushort HL {
-            get {
-                return (ushort)(H + (L * Math.Pow(2, 8)));
-            }
-            set {
-                byte[] bytes = BitConverter.GetBytes(value);
-                H = bytes[0];
-                L = bytes[1];
-            }
-        }
-
+        //private byte A, B, C, D, E, F, H, L;
+        //private ushort HL {
+        //    get {
+        //        return (ushort)(H + (L * Math.Pow(2, 8)));
+        //    }
+        //    set {
+        //        byte[] bytes = BitConverter.GetBytes(value);
+        //        H = bytes[0];
+        //        L = bytes[1];
+        //    }
+        //}
+        byte byte1 = 0b11110010;
+        byte byte2 = 0b10101010;
         private void button1_Click(object sender, EventArgs e) {
+            gb_combinationWord gb = new gb_combinationWord(ref byte1,ref byte2);
+            Console.WriteLine("byte1:" + byte1 + " byte2:" + byte2 + " gbyte1:" + gb.a + " gbyte2:" + gb.b);
+            byte1 = 0b00000001;
+            Console.WriteLine("byte1:" + byte1 + " byte2:" + byte2 + " gbyte1:" + gb.a + " gbyte2:" + gb.b);
+            gb.a = 0b11011011;
+            Console.WriteLine("byte1:" + byte1 + " byte2:" + byte2 + " gbyte1:" + gb.a + " gbyte2:" + gb.b);
+            gb.b = 0b11001111;
+            Console.WriteLine("byte1:" + byte1 + " byte2:" + byte2 + " gbyte1:" + gb.a + " gbyte2:" + gb.b);
+            byte2 = 0b11111111;
+            byte1 = 0b00000000;
+            Console.WriteLine("byte1:" + byte1 + " byte2:" + byte2 + " gbyte1:" + gb.a + " gbyte2:" + gb.b);
             /*
             byte opcode;
             opcode = 0b11010111;
@@ -36,14 +48,14 @@ namespace emulator_gui {
             int q = (opcode & 0b0000_1000) >> 3;
             Console.WriteLine(opcode);
             Console.WriteLine(Convert.ToByte(x));
-            Console.WriteLine(Convert.ToByte(y));*/
+            Console.WriteLine(Convert.ToByte(y));
             H = 0b0001_1110;
             L = 0b1011_0010;
             Console.WriteLine(HL);
             HL = 0b1111_0101_1001_0000;
             Console.WriteLine(HL);
             Console.WriteLine(H);
-            Console.WriteLine(L);
+            Console.WriteLine(L);*/
 
 
 

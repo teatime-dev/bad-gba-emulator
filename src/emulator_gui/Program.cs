@@ -13,7 +13,7 @@ namespace emulator_gui {
         static void Main() {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new GBForm());
+            Application.Run(new testform());
         }
     }
 }
