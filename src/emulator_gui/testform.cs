@@ -24,10 +24,32 @@ namespace emulator_gui {
         //        L = bytes[1];
         //    }
         //}
-        byte byte1 = 0b11110010;
-        byte byte2 = 0b10101010;
+        //byte byte1 = 0b11110010;
+        //byte byte2 = 0b10101010;
         private void button1_Click(object sender, EventArgs e) {
-            gb_combinationWord gb = new gb_combinationWord(ref byte1,ref byte2);
+            /*
+            byte a = 0b11110000;
+            Console.WriteLine(a);
+            gbCPU.SetBit(ref a, 7);
+            Console.WriteLine(a);
+            gbCPU.SetBit(ref a, 0);
+            Console.WriteLine(a);
+            gbCPU.ClearBit(ref a, 7);
+            gbCPU.ClearBit(ref a, 0);
+            gbCPU.ClearBit(ref a, 3);
+            Console.WriteLine(a);
+            gbCPU.ClearBit(ref a, 3);
+            gbCPU.SetBit(ref a, 2);
+            Console.WriteLine(a);
+            Console.WriteLine(gbCPU.GetBit(a, 7));
+            Console.WriteLine(gbCPU.GetBit(a, 6));
+            Console.WriteLine(gbCPU.GetBit(a, 5));
+            Console.WriteLine(gbCPU.GetBit(a, 4));
+            Console.WriteLine(gbCPU.GetBit(a, 3));
+            Console.WriteLine(gbCPU.GetBit(a, 2));
+            Console.WriteLine(gbCPU.GetBit(a, 1));
+            Console.WriteLine(gbCPU.GetBit(a, 0));*/
+            /*gb_combinationWord gb = new gb_combinationWord(ref byte1,ref byte2);
             Console.WriteLine("byte1:" + byte1 + " byte2:" + byte2 + " gbyte1:" + gb.a + " gbyte2:" + gb.b);
             byte1 = 0b00000001;
             Console.WriteLine("byte1:" + byte1 + " byte2:" + byte2 + " gbyte1:" + gb.a + " gbyte2:" + gb.b);

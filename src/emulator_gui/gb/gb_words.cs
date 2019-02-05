@@ -4,7 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-    interface gb_word {
+// UNUSED
+interface gb_word { }
+    /*
         void Set(ushort value);
         ushort Get();
     }
@@ -34,4 +36,4 @@ using System.Threading.Tasks;
 
         public void Set(ushort value) {
         }
-    }
+    }*/
