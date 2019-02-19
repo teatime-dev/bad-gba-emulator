@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-class gbMemory {
+public class gbMemory {
     // just a random sequence of bytes am i right lads
     public enum MBC {ROMONLY,MBC1,MBC2,MBC3};
     static byte[] BIOS = new byte[] {
@@ -44,11 +44,15 @@ class gbMemory {
             if(biosEnabled && key < 255) {
 
             } else {
-                memoryRaw[key] = value;
-                if(biosEnabled) {
-                    if(memoryRaw[0xFF50] > 0) {
-                        biosEnabled = false;
-                        //Array.Clear
+                if(key == 0xFF44) { // Scanline counter, if written to it's set to 0
+                    memoryRaw[key] = 0;
+                } else {
+                    memoryRaw[key] = value;
+                    if (biosEnabled) {
+                        if (memoryRaw[0xFF50] > 0) {
+                            biosEnabled = false;
+                            Console.WriteLine("BIOS disabled.");
+                        }
                     }
                 }
             }
@@ -57,11 +61,12 @@ class gbMemory {
     }
     public gbMemory() {
         memoryRaw = new byte[0x10000];
-        Array.Copy(BIOS, memoryRaw, BIOS.Length);
+        //Array.Copy(BIOS, memoryRaw, BIOS.Length);
     }
 
     public void loadCatridge(byte[] romFile) {
 #warning not properly done, doesnt manage catridge banks
+        romData = new byte[romFile.Length];
         Array.Copy(romFile, romData,romFile.Length);
         bool knownMBC = false;
         mbcByte = romData[0x147];

@@ -15,6 +15,16 @@ public class gbCPU {
         // Otherwise perform the 2's complement math on the value
         return (byte)(~(rawValue - 0x01)) * -1;
     }
+    public enum INTERRUPTS {
+        VBLANK,
+        LCDC,
+        SERIAL,
+        TIMER,
+        HiToLo,
+    }
+    public void interrupt(INTERRUPTS interrupt) {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Returns true if the bytes added is a half carry (i.e. bit 3 goes to bit 4)
@@ -41,6 +51,27 @@ public class gbCPU {
         a = (byte)(a + b);
         return flag_h;
     }
+    /// <summary>
+    /// Subtracts b from a, changes flag_h if a half carry
+    /// </summary>
+    /// <param name="a">Byte to remove from</param>
+    /// <param name="b">Byte to remove</param>
+    /// <returns></returns>
+    private bool SubtractAndCarry(ref byte a, byte b) {
+        if (((a & 0xF) - (b & 0xF)) < 0) {
+            flag_h = true;
+        } else {
+            flag_h = false;
+        }
+        a = (byte)(a - b);
+        return flag_h;
+    }
+    /// <summary>
+    /// Gets the nth bit, 0-7
+    /// </summary>
+    /// <param name="b">bit to get</param>
+    /// <param name="bitNumber">nth bit, 0-7</param>
+    /// <returns></returns>
     public static bool GetBit(byte b, int bitNumber) {
         if (bitNumber < 0 || bitNumber > 7) {
             throw new Exception("bitNumber is higher than a byte can handle :" + bitNumber);
@@ -55,7 +86,9 @@ public class gbCPU {
     }
     static int[] prefixBytes = new int[4] { 0xCB, 0xDD, 0xED, 0xFD };
     //private byte[] memory = new byte[0xFFFF];
-    private gbMemory memory = new gbMemory();
+    public gbMemory memory;
+    public gbLCD lcd;
+   
     private byte A, B, C, D, E, F, H, L;
     private ushort HL {
         get {
@@ -145,7 +178,6 @@ public class gbCPU {
             }
         }
     }
-
     private ushort SP, PC;
     private int currentPos = 0;
     private string[] table_r = new string[8] { "B", "C", "D", "E", "H", "L", "(HL)", "A" };
@@ -302,7 +334,9 @@ public class gbCPU {
     public gbCPU(byte[] romData) {
         //this.memory = romData;
         //Array.Copy(romData, 0, memory.memoryRaw, 0, 0x100);
+        memory = new gbMemory();
         memory.loadCatridge(romData);
+        lcd = new gbLCD(this);
         A = B = C = D = E = F = H = L = 0b0000_0000;
         SP = 0;
         PC = 0;
@@ -316,9 +350,53 @@ public class gbCPU {
         }
         return true;
     }
-
-    private void do_alu(int y, int z) {
+    private void do_rot(int y, int z) {
         byte r_value = get_table_r(z);
+        //	rot[y] r[z]
+        switch (y) {
+            case 0:
+                //RLC 
+                throw new NotImplementedException();
+            case 1:
+                //RRC
+                throw new NotImplementedException();
+            case 2:
+                //RL
+                // Moves bit 7 to carry, and carry to bit 0
+                bool tempBit = flag_c;
+                flag_c = GetBit(r_value, 7);
+                r_value = (byte)(r_value << 1);
+                ClearBit(ref r_value, 0);
+                if(tempBit) {
+                    SetBit(ref r_value, 0);
+                }
+                flag_h = false;
+                flag_n = false;
+                flag_z = false;
+                if(r_value == 0) {
+                    flag_z = true;
+                }
+                set_table_r(z, r_value);
+                break;
+            case 3:
+                //RR
+                throw new NotImplementedException();
+            case 4:
+                //SLA
+                throw new NotImplementedException();
+            case 5:
+                //SRA
+                throw new NotImplementedException();
+            case 6:
+                //SWAP
+                throw new NotImplementedException();
+            case 7:
+                //SRL
+                throw new NotImplementedException();
+        }
+    }
+    private void do_alu(int y, int z) {
+        byte r_value = (byte)z;
         //	alu[y] r[z]
         switch (y) {
             case 0:
@@ -361,7 +439,12 @@ public class gbCPU {
                 throw new NotImplementedException();
             case 7:
                 //CP
-                throw new NotImplementedException();
+                byte temp_a = A;
+                flag_n = true;
+                flag_z = (A == r_value);
+                flag_c = (A < r_value);
+                SubtractAndCarry(ref temp_a, r_value);
+                break;
         }
     }
 
@@ -406,6 +489,8 @@ public class gbCPU {
                 switch (x) {
                     case 0:
                         operation = table_rot[y] + " " + table_r[z];
+                        do_rot(y, z);
+                        unknownOP = false;
                         break;
                     case 1:
                         operation = "BIT " + y + ", " + table_r[z];
@@ -444,15 +529,20 @@ public class gbCPU {
 
                                     break;
                                 case 3:
-
+                                    displacementByte = (sbyte)memory[memPosition + 1];
+                                    int displacement = displacementByte;
+                                    unknownOP = false;
+                                    operation = "JR " + displacement;
+                                    PC = (ushort)(PC + (displacement + 2));
+                                    opLength = 0;
                                     break;
                                 case 4:
                                 case 5:
                                 case 6:
                                 case 7:
                                     displacementByte = (sbyte)memory[memPosition + 1];
-                                    int displacement = displacementByte;
-                                    operation = "JR " + table_cc[y - 4] + "," + displacement;
+                                    int displacementConditional = displacementByte;
+                                    operation = "JR " + table_cc[y - 4] + "," + displacementConditional;
                                     opLength = 2;
                                     unknownOP = false;
                                     bool condition;
@@ -474,7 +564,7 @@ public class gbCPU {
                                             throw new Exception("JR condition isn't correct:" + (y - 4));
                                     }
                                     if (condition) {
-                                        PC = (ushort)(PC + (displacement + 2));
+                                        PC = (ushort)(PC + (displacementConditional + 2));
                                         opLength = 0;
                                     } else {
                                         // DELETE THIS
@@ -525,7 +615,7 @@ public class gbCPU {
                                         case 2:
                                             operation = "LD [HL+], A";
                                             memory[HL] = A;
-                                            HL -= 1;
+                                            HL += 1;
                                             break;
                                         case 3:
                                             operation = "LD [HL-], A";
@@ -551,7 +641,7 @@ public class gbCPU {
                                         case 2:
                                             operation = "LD A,(HL+)";
                                             A = memory[HL];
-                                            HL -= 1;
+                                            HL += 1;
                                             break;
                                         case 3:
                                             operation = "LD A,(HL-)";
@@ -563,21 +653,43 @@ public class gbCPU {
                             }
                             break;
                         case 3:
-
+                            // Z is 3
+                            opLength = 1;
+                            unknownOP = false;
+                            int numToAdd = 0;
+                            switch (q) {
+                                case 0:
+                                    operation = "INC " + table_rp_names[p];
+                                    numToAdd = 1;
+                                    break;
+                                case 1:
+                                    operation = "DEC " + table_rp_names[p];
+                                    numToAdd = -1;
+                                    break;
+                            }
+                            set_table_rp(p, (ushort)(get_table_rp(p) + numToAdd));
                             break;
                         case 4:
                             // Z is 4
                             operation = "INC " + table_r[y];
                             opLength = 1;
                             flag_n = false;
-                            flag_z = (A == 0);
                             byte added = get_table_r(y);
                             AddandCarry(ref added, 0b1);
                             set_table_r(y, added);
+                            flag_z = (added == 0);
                             unknownOP = false;
                             break;
                         case 5:
-
+                            // Z is 5
+                            operation = "DEC " + table_r[y];
+                            opLength = 1;
+                            flag_n = true;
+                            byte subtracted = get_table_r(y);
+                            SubtractAndCarry(ref subtracted, 0b1);
+                            set_table_r(y, subtracted);
+                            flag_z = (subtracted == 0);
+                            unknownOP = false;
                             break;
                         //Z is 6
                         case 6:
@@ -589,7 +701,41 @@ public class gbCPU {
                             set_table_r(y, data[0]);
                             break;
                         case 7:
+                            // Z is 7
+                            opLength = 1;
+                            switch(y) {
+                                case 0:
+                                    operation = "RLCA";
+                                    break;
+                                case 1:
+                                    operation = "RRCA";
+                                    break;
+                                case 2:
+                                    operation = "RLA";
+                                    bool zState = flag_z;
+                                    // 2(RL) and 7(A)
+                                    do_rot(2,7);
+                                    // Since Z flag is unaffected.
+                                    flag_z = zState;
+                                    unknownOP = false;
+                                    break;
+                                case 3:
+                                    operation = "RRA";
+                                    break;
+                                case 4:
+                                    operation = "DAA";
+                                    break;
+                                case 5:
+                                    operation = "CPL";
+                                    break;
+                                case 6:
+                                    operation = "SCF";
+                                    break;
+                                case 7:
+                                    operation = "CCF";
+                                    break;
 
+                            }
                             break;
                     }
                     break;
@@ -611,7 +757,7 @@ public class gbCPU {
                 // X is 2
                 case 2:
                     operation = table_alu[y] + " " + table_r[z];
-                    do_alu(y, z);
+                    do_alu(y, get_table_r(z));
                     unknownOP = false;
                     opLength = 1;
                     break;
@@ -639,7 +785,12 @@ public class gbCPU {
 
                                     break;
                                 case 6:
-
+                                    data[0] = memory[memPosition + 1];
+                                    //data[1] = memory[memPosition + 1];
+                                    operation = "LD A,(0xFF00 + " + data[0] + ")";
+                                    opLength = 2;
+                                    A = memory[0xFF00 + data[0]];
+                                    unknownOP = false;
                                     break;
                                 case 7:
 
@@ -657,7 +808,24 @@ public class gbCPU {
                                     SP += 2;
                                     break;
                                 case 1:
+                                    switch(p) {
+                                        case 0:
+                                            operation = "RET";
+                                            opLength = 0;
+                                            PC = (ushort)(memory[SP] + (memory[SP + 1] * Math.Pow(2, 8)));
+                                            SP += 2;
+                                            unknownOP = false;
+                                            break;
+                                        case 1:
 
+                                            break;
+                                        case 2:
+
+                                            break;
+                                        case 3:
+
+                                            break;
+                                    }
                                     break;
                             }
                             break;
@@ -677,7 +845,13 @@ public class gbCPU {
                                     unknownOP = false;
                                     break;
                                 case 5:
-
+                                    data[0] = memory[memPosition + 1];
+                                    data[1] = memory[memPosition + 2];
+                                    ushort address = (ushort)(data[0] + (data[1] * Math.Pow(2, 8)));
+                                    operation = "LD " + String.Format("{0:X}", address) + ",A";
+                                    memory[address] = A;
+                                    unknownOP = false;
+                                    opLength = 3;
                                     break;
                                 case 6:
 
@@ -694,9 +868,16 @@ public class gbCPU {
 
                             break;
                         case 5:
+                            // Z is 5
                             switch (q) {
                                 case 0:
-
+                                    operation = "PUSH " + table_rp2_names[p];
+                                    opLength = 1;
+                                    unknownOP = false;
+                                    SP -= 2;
+                                    data = BitConverter.GetBytes(get_table_rp2(p));
+                                    memory[SP] = data[0];
+                                    memory[SP + 1] = data[1];
                                     break;
                                 case 1:
                                     if (p != 0) {
@@ -708,16 +889,22 @@ public class gbCPU {
                                     operation = "CALL " + callValue;
                                     byte[] nextAddress = BitConverter.GetBytes(PC + 3);
                                     opLength = 0;
-                                    memory[SP - 1] = nextAddress[1];
-                                    memory[SP - 2] = nextAddress[0];
                                     SP -= 2;
+                                    memory[SP] = nextAddress[0];
+                                    memory[SP + 1] = nextAddress[1];
                                     memPosition = callValue;
+                                    PC = callValue;
                                     unknownOP = false;
                                     break;
                             }
                             break;
                         case 6:
-
+                            // Z is 6
+                            opLength = 2;
+                            data[0] = memory[memPosition + 1];
+                            operation = table_alu[y] + data[0];
+                            do_alu(y, data[0]);
+                            unknownOP = false;
                             break;
                         case 7:
 
@@ -731,6 +918,8 @@ public class gbCPU {
             throw new Exception("Was not able to handle operation:" + opcode + " if applicable, operation is known as: " + operation + " | x" + x + " | y" + y + " | z" + z + " | p" + p + " | q" + q);
         }
         PC += opLength;
-        Console.WriteLine(operation + " PC = " + memPosition);
+        //lcd.ProcessGraphics(cycleLength, ref this);
+        A = A;
+        //Console.WriteLine(operation + " PC = " + memPosition);
     }
 }

@@ -27,6 +27,16 @@ namespace emulator_gui {
         //byte byte1 = 0b11110010;
         //byte byte2 = 0b10101010;
         private void button1_Click(object sender, EventArgs e) {
+            gbCPU a = new gbMemory();
+            a.memory[10] = 0b11110000;
+            gbLCD b = new gbLCD(a);
+            Console.WriteLine(b.returnMem(10));
+            Console.WriteLine(b.returnMem(9));
+            a[10] = 0b10101010;
+            Console.WriteLine(b.returnMem(10));
+            Console.WriteLine(b.returnMem(9));
+            //Console.WriteLine(Convert.ToString((byte)(a << 1), 2));
+            //Console.WriteLine(Convert.ToString((byte)(b << 1), 2));
             /*
             byte a = 0b11110000;
             Console.WriteLine(a);

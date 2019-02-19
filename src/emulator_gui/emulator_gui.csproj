@@ -77,6 +77,7 @@
     </Compile>
     <Compile Include="gb\gb.cs" />
     <Compile Include="gb\gbcpu.cs" />
+    <Compile Include="gb\gbLCD.cs" />
     <Compile Include="gb\gbMemory.cs" />
     <Compile Include="gb\gb_words.cs" />
     <Compile Include="Program.cs" />
