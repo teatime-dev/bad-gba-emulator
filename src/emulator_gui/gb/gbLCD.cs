@@ -20,20 +20,22 @@ public class gbLCD {
     bool mode1enable;
     bool mode2enable;
     byte currentScanline;
+    gbCPU cpu;
     public gbLCD(gbCPU cpu) {
         cpu.memory.memoryRaw[SCANLINE_MEM] = 0;
         current_time = SCANLINE_TIME;
+        this.cpu = cpu;
         }
-    public bool LCDEnabled(ref gbCPU cpu) {
+    public bool LCDEnabled(gbCPU cpu) {
         if (cpu == null) {
             throw new ArgumentNullException(nameof(cpu));
         }
 
         return gbCPU.GetBit(cpu.memory[LCD_DISPLAY], 7);
     }
-    public void ProcessGraphics(int cycleLength, ref gbCPU cpu) {
+    public void ProcessGraphics(int cycleLength) {
         status = cpu.memory[LCD_STATUS];
-        if(!LCDEnabled(ref cpu)) {
+        if(!LCDEnabled(cpu)) {
             current_time = SCANLINE_TIME;
             cpu.memory[SCANLINE_MEM] = 0;
             status &= 0b1111_1100;

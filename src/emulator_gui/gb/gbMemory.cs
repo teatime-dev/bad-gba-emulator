@@ -35,13 +35,13 @@ public class gbMemory {
     private bool biosEnabled = true;
     public byte this[int key] {
         get {
-            if (biosEnabled && key < 255) {
+            if (biosEnabled && key < 256) {
                 return BIOS[key];
             }
             return memoryRaw[key];
         }
         set {
-            if(biosEnabled && key < 255) {
+            if(biosEnabled && key < 256) {
 
             } else {
                 if(key == 0xFF44) { // Scanline counter, if written to it's set to 0

@@ -196,7 +196,7 @@ public class gbCPU {
             case 5:
                 return L;
             case 6:
-                return memory.memoryRaw[H + (L << 8)];
+                return memory.memoryRaw[HL];
             case 7:
                 return A;
             default:
@@ -331,6 +331,7 @@ public class gbCPU {
     private int p = 0;
     private int q = 0;
     private ushort opLength = 1;
+    private int cycleLength = 0;
     public gbCPU(byte[] romData) {
         //this.memory = romData;
         //Array.Copy(romData, 0, memory.memoryRaw, 0, 0x100);
@@ -419,7 +420,11 @@ public class gbCPU {
                 return;
             case 2:
                 //SUB
-                throw new NotImplementedException();
+                flag_n = true;
+                flag_z = (A == r_value);
+                flag_c = (A < r_value);
+                SubtractAndCarry(ref A, r_value);
+                break;
             case 3:
                 //SBC A,
                 throw new NotImplementedException();
@@ -440,6 +445,11 @@ public class gbCPU {
             case 7:
                 //CP
                 byte temp_a = A;
+                if(PC > 0xe0) {
+                    if(1==1) {
+
+                    }
+                }
                 flag_n = true;
                 flag_z = (A == r_value);
                 flag_c = (A < r_value);
@@ -520,7 +530,11 @@ public class gbCPU {
                             // Z is 0
                             switch (y) {
                                 case 0:
-
+                                    // Y is 0
+                                    unknownOP = false;
+                                    operation = "NOP";
+                                    opLength = 1;
+                                    cycleLength = 4;
                                     break;
                                 case 1:
 
@@ -918,7 +932,8 @@ public class gbCPU {
             throw new Exception("Was not able to handle operation:" + opcode + " if applicable, operation is known as: " + operation + " | x" + x + " | y" + y + " | z" + z + " | p" + p + " | q" + q);
         }
         PC += opLength;
-        //lcd.ProcessGraphics(cycleLength, ref this);
+        cycleLength = 10;
+        lcd.ProcessGraphics(cycleLength);
         A = A;
         //Console.WriteLine(operation + " PC = " + memPosition);
     }
