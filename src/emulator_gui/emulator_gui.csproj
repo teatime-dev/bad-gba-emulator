@@ -79,6 +79,7 @@
     <Compile Include="gb\gbcpu.cs" />
     <Compile Include="gb\gbLCD.cs" />
     <Compile Include="gb\gbMemory.cs" />
+    <Compile Include="gb\gb_utilities.cs" />
     <Compile Include="gb\gb_words.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

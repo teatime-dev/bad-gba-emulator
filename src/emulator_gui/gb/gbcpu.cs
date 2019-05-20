@@ -314,6 +314,16 @@ public class gbCPU {
                 throw new Exception("Index was out of range:" + index);
         }
     }*/
+    private byte n {
+        get {
+            return memory[PC + 1];
+        }
+    }
+    private ushort nn {
+        get {
+            return (ushort)(data[0] + (data[1] * Math.Pow(2, 8)));
+        }
+    }
     private string[] table_rp2_names = new string[4] { "BC", "DE", "HL", "AF" };
     private string[] table_cc = new string[4] { "NZ", "Z", "NC", "C" };
     private string[] table_alu = new string[8] { "ADD A", "ADC A", "SUB", "SBC A", "AND", "XOR", "OR", "CP" };
@@ -347,7 +357,7 @@ public class gbCPU {
     public bool run() {
         bool finished = false;
         while (!finished) {
-            runOpcode(memory[PC], PC);
+            runOpcode(memory[PC]);
         }
         return true;
     }
@@ -459,7 +469,7 @@ public class gbCPU {
     }
 
     //private ref byte
-    private void runOpcode(byte byteToRun, int memPosition) {
+    private void runOpcode(byte byteToRun/*, int memPosition*/) {
         hasPrefix = false;
         isSecondary = false;
         unknownOP = true;
@@ -469,19 +479,19 @@ public class gbCPU {
             prefixByte = byteToRun;
             //Secondary byte pattern
             if (prefixByte == 0xDD || prefixByte == 0xFD) {
-                if (memory[memPosition + 1] == 0xCB) {
-                    prefixByte2 = memory[memPosition + 1];
-                    displacementByte = (sbyte)memory[memPosition + 2];
+                if (memory[PC + 1] == 0xCB) {
+                    prefixByte2 = memory[PC + 1];
+                    displacementByte = (sbyte)memory[PC + 2];
                     isSecondary = true;
                 }
             }
         }
         //primary byte pattern
-        opcode = memory[memPosition];
+        opcode = memory[PC];
         if (hasPrefix) {
-            opcode = memory[memPosition + 1];
+            opcode = memory[PC + 1];
             if (isSecondary) {
-                opcode = memory[memPosition + 3];
+                opcode = memory[PC + 3];
                 opLength = 4;
             }
         }
@@ -543,7 +553,7 @@ public class gbCPU {
 
                                     break;
                                 case 3:
-                                    displacementByte = (sbyte)memory[memPosition + 1];
+                                    displacementByte = (sbyte)memory[PC + 1];
                                     int displacement = displacementByte;
                                     unknownOP = false;
                                     operation = "JR " + displacement;
@@ -554,7 +564,7 @@ public class gbCPU {
                                 case 5:
                                 case 6:
                                 case 7:
-                                    displacementByte = (sbyte)memory[memPosition + 1];
+                                    displacementByte = (sbyte)memory[PC + 1];
                                     int displacementConditional = displacementByte;
                                     operation = "JR " + table_cc[y - 4] + "," + displacementConditional;
                                     opLength = 2;
@@ -592,11 +602,11 @@ public class gbCPU {
                             switch (q) {
                                 case 0:
                                     //x0z1q0
-                                    operation = "LD " + table_rp_names[p] + "," + (memory[memPosition + 1] + (memory[memPosition + 2] << 8)).ToString("X");
+                                    operation = "LD " + table_rp_names[p] + "," + (memory[PC + 1] + (memory[PC + 2] << 8)).ToString("X");
                                     //op_LD(table_rp[p], romData[memPosition + 1] + romData[memPosition + 2]);
                                     opLength = 3;
-                                    data[0] = memory[memPosition + 1];
-                                    data[1] = memory[memPosition + 2];
+                                    data[0] = memory[PC + 1];
+                                    data[1] = memory[PC + 2];
                                     // TODO: FIX THIS - switch statement which could be a table_rp function thing.
                                     // Cant return ref to HL  because it doesn't like that - it's fine with SP because it doesnt have custom get/set.
                                     // Maybe return an anonymous function which has get and set for all of them?
@@ -708,10 +718,10 @@ public class gbCPU {
                         //Z is 6
                         case 6:
                             //System.Exception: 'Was not able to handle operation:38 if applicable, operation is known as:  | x0 | y4 | z6 | p2 | q0'
-                            operation = "LD " + table_r[y] + "," + memory[memPosition + 1];
+                            operation = "LD " + table_r[y] + "," + n;
                             opLength = 2;
                             unknownOP = false;
-                            data[0] = memory[memPosition + 1];
+                            data[0] = memory[PC + 1];
                             set_table_r(y, data[0]);
                             break;
                         case 7:
@@ -788,7 +798,7 @@ public class gbCPU {
 
                                     break;
                                 case 4:
-                                    data[0] = memory[memPosition + 1];
+                                    data[0] = memory[PC + 1];
                                     //data[1] = memory[memPosition + 1];
                                     operation = "LD(0xFF00 + " + data[0] + "),A";
                                     opLength = 2;
@@ -799,7 +809,7 @@ public class gbCPU {
 
                                     break;
                                 case 6:
-                                    data[0] = memory[memPosition + 1];
+                                    data[0] = memory[PC + 1];
                                     //data[1] = memory[memPosition + 1];
                                     operation = "LD A,(0xFF00 + " + data[0] + ")";
                                     opLength = 2;
@@ -859,11 +869,8 @@ public class gbCPU {
                                     unknownOP = false;
                                     break;
                                 case 5:
-                                    data[0] = memory[memPosition + 1];
-                                    data[1] = memory[memPosition + 2];
-                                    ushort address = (ushort)(data[0] + (data[1] * Math.Pow(2, 8)));
-                                    operation = "LD " + String.Format("{0:X}", address) + ",A";
-                                    memory[address] = A;
+                                    operation = "LD " + String.Format("{0:X}", nn) + ",A";
+                                    memory[nn] = A;
                                     unknownOP = false;
                                     opLength = 3;
                                     break;
@@ -876,7 +883,19 @@ public class gbCPU {
                             }
                             break;
                         case 3:
-
+                            // Z is 3
+                            switch(y)
+                            {
+                                case 0:
+                                // Y is 0
+                                    break;
+                                case 6:
+                                    // DI
+                                    break;
+                                case 7:
+                                    // EI
+                                    break;
+                            }
                             break;
                         case 4:
 
@@ -897,16 +916,16 @@ public class gbCPU {
                                     if (p != 0) {
                                         throw new Exception("operation is removed (x3z5q1p1-3)");
                                     }
-                                    data[0] = memory[memPosition + 1];
-                                    data[1] = memory[memPosition + 2];
+                                    data[0] = memory[PC + 1];
+                                    data[1] = memory[PC + 2];
+                                    // TODO: REPLACE WITH NN but it makes a different result so see why
                                     ushort callValue = (ushort)(data[0] + (data[1] * Math.Pow(2, 8)));
-                                    operation = "CALL " + callValue;
+                                    operation = "CALL " + nn;
                                     byte[] nextAddress = BitConverter.GetBytes(PC + 3);
                                     opLength = 0;
                                     SP -= 2;
                                     memory[SP] = nextAddress[0];
                                     memory[SP + 1] = nextAddress[1];
-                                    memPosition = callValue;
                                     PC = callValue;
                                     unknownOP = false;
                                     break;
@@ -915,7 +934,7 @@ public class gbCPU {
                         case 6:
                             // Z is 6
                             opLength = 2;
-                            data[0] = memory[memPosition + 1];
+                            data[0] = memory[PC + 1];
                             operation = table_alu[y] + data[0];
                             do_alu(y, data[0]);
                             unknownOP = false;
@@ -937,4 +956,6 @@ public class gbCPU {
         A = A;
         //Console.WriteLine(operation + " PC = " + memPosition);
     }
+
+
 }
