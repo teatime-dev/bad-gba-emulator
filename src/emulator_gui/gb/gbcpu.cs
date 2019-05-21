@@ -470,6 +470,7 @@ public class gbCPU {
 
     //private ref byte
     private void runOpcode(byte byteToRun/*, int memPosition*/) {
+        cycleLength = -1;
         hasPrefix = false;
         isSecondary = false;
         unknownOP = true;
@@ -479,8 +480,8 @@ public class gbCPU {
             prefixByte = byteToRun;
             //Secondary byte pattern
             if (prefixByte == 0xDD || prefixByte == 0xFD) {
-                if (memory[PC + 1] == 0xCB) {
-                    prefixByte2 = memory[PC + 1];
+                if (n == 0xCB) {
+                    prefixByte2 = n;
                     displacementByte = (sbyte)memory[PC + 2];
                     isSecondary = true;
                 }
@@ -510,6 +511,11 @@ public class gbCPU {
                     case 0:
                         operation = table_rot[y] + " " + table_r[z];
                         do_rot(y, z);
+                        cycleLength = 8;
+                        if(z == 6)
+                        {
+                            cycleLength = 16;
+                        }
                         unknownOP = false;
                         break;
                     case 1:
@@ -602,15 +608,15 @@ public class gbCPU {
                             switch (q) {
                                 case 0:
                                     //x0z1q0
-                                    operation = "LD " + table_rp_names[p] + "," + (memory[PC + 1] + (memory[PC + 2] << 8)).ToString("X");
+                                    operation = "LD " + table_rp_names[p] + "," + nn.ToString("X");
                                     //op_LD(table_rp[p], romData[memPosition + 1] + romData[memPosition + 2]);
                                     opLength = 3;
-                                    data[0] = memory[PC + 1];
-                                    data[1] = memory[PC + 2];
+                                    //data[0] = memory[PC + 1];
+                                    //data[1] = memory[PC + 2];
                                     // TODO: FIX THIS - switch statement which could be a table_rp function thing.
                                     // Cant return ref to HL  because it doesn't like that - it's fine with SP because it doesnt have custom get/set.
                                     // Maybe return an anonymous function which has get and set for all of them?
-                                    set_table_rp(p, data);
+                                    set_table_rp(p, nn);
                                     //SP = Convert.ToUInt16(data1 + data2 << 8);
                                     //TEMPORARY CODE
                                     unknownOP = false;
@@ -721,8 +727,8 @@ public class gbCPU {
                             operation = "LD " + table_r[y] + "," + n;
                             opLength = 2;
                             unknownOP = false;
-                            data[0] = memory[PC + 1];
-                            set_table_r(y, data[0]);
+                            //data[0] = memory[PC + 1];
+                            set_table_r(y, n);
                             break;
                         case 7:
                             // Z is 7
@@ -730,12 +736,15 @@ public class gbCPU {
                             switch(y) {
                                 case 0:
                                     operation = "RLCA";
+                                    cycleLength = 4;
                                     break;
                                 case 1:
                                     operation = "RRCA";
+                                    cycleLength = 4;
                                     break;
                                 case 2:
                                     operation = "RLA";
+                                    cycleLength = 4;
                                     bool zState = flag_z;
                                     // 2(RL) and 7(A)
                                     do_rot(2,7);
@@ -745,18 +754,23 @@ public class gbCPU {
                                     break;
                                 case 3:
                                     operation = "RRA";
+                                    cycleLength = 4;
                                     break;
                                 case 4:
                                     operation = "DAA";
+                                    cycleLength = 4;
                                     break;
                                 case 5:
                                     operation = "CPL";
+                                    cycleLength = 4;
                                     break;
                                 case 6:
                                     operation = "SCF";
+                                    cycleLength = 4;
                                     break;
                                 case 7:
                                     operation = "CCF";
+                                    cycleLength = 4;
                                     break;
 
                             }
@@ -798,22 +812,22 @@ public class gbCPU {
 
                                     break;
                                 case 4:
-                                    data[0] = memory[PC + 1];
+                                    //data[0] = memory[PC + 1];
                                     //data[1] = memory[memPosition + 1];
-                                    operation = "LD(0xFF00 + " + data[0] + "),A";
+                                    operation = "LD(0xFF00 + " + n + "),A";
                                     opLength = 2;
-                                    memory[0xFF00 + data[0]] = A;
+                                    memory[0xFF00 + n] = A;
                                     unknownOP = false;
                                     break;
                                 case 5:
 
                                     break;
                                 case 6:
-                                    data[0] = memory[PC + 1];
+                                    //data[0] = memory[PC + 1];
                                     //data[1] = memory[memPosition + 1];
-                                    operation = "LD A,(0xFF00 + " + data[0] + ")";
+                                    operation = "LD A,(0xFF00 + " + n + ")";
                                     opLength = 2;
-                                    A = memory[0xFF00 + data[0]];
+                                    A = memory[0xFF00 + n];
                                     unknownOP = false;
                                     break;
                                 case 7:
@@ -916,17 +930,17 @@ public class gbCPU {
                                     if (p != 0) {
                                         throw new Exception("operation is removed (x3z5q1p1-3)");
                                     }
-                                    data[0] = memory[PC + 1];
-                                    data[1] = memory[PC + 2];
+                                    //data[0] = memory[PC + 1];
+                                    //data[1] = memory[PC + 2];
                                     // TODO: REPLACE WITH NN but it makes a different result so see why
-                                    ushort callValue = (ushort)(data[0] + (data[1] * Math.Pow(2, 8)));
+                                    //ushort callValue = (ushort)(data[0] + (data[1] * Math.Pow(2, 8)));
                                     operation = "CALL " + nn;
                                     byte[] nextAddress = BitConverter.GetBytes(PC + 3);
                                     opLength = 0;
                                     SP -= 2;
                                     memory[SP] = nextAddress[0];
                                     memory[SP + 1] = nextAddress[1];
-                                    PC = callValue;
+                                    PC = nn;
                                     unknownOP = false;
                                     break;
                             }
@@ -946,12 +960,16 @@ public class gbCPU {
                     break;
             }
         }
+        if(cycleLength < 0)
+        {
+            throw new Exception("Cycle length shouldn't be less than 0 (haven't implemented the cycle length for current opcode");
+        }
         // 16 bit STORED AS LEAST SIGNIFICANT BIT FIRST
         if (unknownOP) {
             throw new Exception("Was not able to handle operation:" + opcode + " if applicable, operation is known as: " + operation + " | x" + x + " | y" + y + " | z" + z + " | p" + p + " | q" + q);
         }
         PC += opLength;
-        cycleLength = 10;
+        //cycleLength = 10;
         lcd.ProcessGraphics(cycleLength);
         A = A;
         //Console.WriteLine(operation + " PC = " + memPosition);
