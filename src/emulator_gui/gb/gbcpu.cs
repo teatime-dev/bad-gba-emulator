@@ -507,15 +507,11 @@ public class gbCPU {
         //Handle operation
         if (hasPrefix) {
             if (prefixByte == 0xCB) {
+
                 switch (x) {
                     case 0:
                         operation = table_rot[y] + " " + table_r[z];
                         do_rot(y, z);
-                        cycleLength = 8;
-                        if(z == 6)
-                        {
-                            cycleLength = 16;
-                        }
                         unknownOP = false;
                         break;
                     case 1:
@@ -524,6 +520,7 @@ public class gbCPU {
                         flag_n = false;
                         flag_h = true;
                         unknownOP = false;
+                        
                         break;
                     case 2:
                         operation = "RES " + y + ", " + table_r[z];
@@ -533,6 +530,13 @@ public class gbCPU {
                         break;
                 }
                 opLength = 2;
+                if (z == 6)
+                {
+                    cycleLength = 16;
+                } else
+                {
+                    cycleLength = 8;
+                }
             } else {
                 throw new Exception("Prefix byte detected that isn't beginning with CB");
             }
@@ -565,6 +569,7 @@ public class gbCPU {
                                     operation = "JR " + displacement;
                                     PC = (ushort)(PC + (displacement + 2));
                                     opLength = 0;
+                                    cycleLength = 8;
                                     break;
                                 case 4:
                                 case 5:
@@ -598,8 +603,9 @@ public class gbCPU {
                                         opLength = 0;
                                     } else {
                                         // DELETE THIS
-                                        Console.WriteLine("DIDNT JUMP");
+                                        //Console.WriteLine("DIDNT JUMP");
                                     }
+                                    cycleLength = 8;
                                     break;
                             }
                             break;
