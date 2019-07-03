@@ -180,6 +180,9 @@ public class gbCPU {
     }
     private ushort SP, PC;
     private int currentPos = 0;
+    /// <summary>
+    /// register table, in order: B,C,D,E,H,L,(HL),A
+    /// </summary>
     private string[] table_r = new string[8] { "B", "C", "D", "E", "H", "L", "(HL)", "A" };
     private byte get_table_r(int index) {
         switch (index) {
@@ -203,6 +206,13 @@ public class gbCPU {
                 throw new Exception("Index was out of range:" + index);
         }
     }
+    /// <summary>
+    /// sets the value at the register table
+    /// in order of index 
+    /// B,C,D,E,H,L,(HL),A
+    /// </summary>
+    /// <param name="index">Value of index</param>
+    /// <param name="value">Value to set it to</param>
     private void set_table_r(int index, byte value) {
         switch (index) {
             case 0:
@@ -233,7 +243,18 @@ public class gbCPU {
                 throw new Exception("Index was out of range:" + index);
         }
     }
+    /// <summary>
+    /// 16 bit register values, in order:
+    /// BC,DE,HL,SP
+    /// </summary>
     private string[] table_rp_names = new string[4] { "BC", "DE", "HL", "SP" };
+    /// <summary>
+    /// Gets the value of the 16 bit register
+    /// In order (0-3):
+    /// BC,DE,HL,SP
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     private ushort get_table_rp(int index) {
         switch (index) {
             case 0:
@@ -248,6 +269,12 @@ public class gbCPU {
                 throw new IndexOutOfRangeException("rp index should only be 0-3");
         }
     }
+    /// <summary>
+    /// Sets the value located at the point in the 16 bit register
+    /// BC,DE,HL,SP
+    /// </summary>
+    /// <param name="index">The index of the 16 bit register, refer to previous</param>
+    /// <param name="value">The value to set it at</param>
     private void set_table_rp(int index, ushort value) {
         switch (index) {
             case 0:
@@ -264,6 +291,12 @@ public class gbCPU {
                 break;
         }
     }
+    /// <summary>
+    /// Gets the value at table rp2
+    /// In order: BC,DE,HL,AF
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     private ushort get_table_rp2(int index) {
         switch (index) {
             case 0:
@@ -278,6 +311,12 @@ public class gbCPU {
                 throw new IndexOutOfRangeException("rp2 index should only be 0-3");
         }
     }
+    /// <summary>
+    /// Sets the value at table rp2
+    /// In order: BC,DE,HL,AF
+    /// </summary>
+    /// <param name="index">Index of the value</param>
+    /// <param name="value">Value to set it to</param>
     private void set_table_rp2(int index, ushort value) {
         switch (index) {
             case 0:
@@ -294,6 +333,11 @@ public class gbCPU {
                 break;
         }
     }
+    /// <summary>
+    /// Overload for normal method.
+    /// </summary>
+    /// <param name="index"></param>
+    /// <param name="value"></param>
     private void set_table_rp(int index, byte[] value) {
         //return (ushort)(H + (L * Math.Pow(2, 8)));
         ushort valueToSet = (ushort)(value[0] + (value[1] * Math.Pow(2, 8)));
@@ -324,9 +368,21 @@ public class gbCPU {
             return (ushort)(data[0] + (data[1] * Math.Pow(2, 8)));
         }
     }
+    /// <summary>
+    /// BC,DE,HL,AF
+    /// </summary>
     private string[] table_rp2_names = new string[4] { "BC", "DE", "HL", "AF" };
+    /// <summary>
+    /// NZ,Z,NC,C
+    /// </summary>
     private string[] table_cc = new string[4] { "NZ", "Z", "NC", "C" };
+    /// <summary>
+    /// ADD A,ADC A,SUB,SBC A,AND,XOR,OR,CP
+    /// </summary>
     private string[] table_alu = new string[8] { "ADD A", "ADC A", "SUB", "SBC A", "AND", "XOR", "OR", "CP" };
+    /// <summary>
+    /// RLC,RRC,RL,RR,SLA,SRA,SWAP,SRL
+    /// </summary>
     private string[] table_rot = new string[8] { "RLC", "RRC", "RL", "RR", "SLA", "SRA", "SWAP", "SRL" };
     private string operation = "";
     private byte prefixByte, prefixByte2, opcode;
@@ -658,13 +714,12 @@ public class gbCPU {
                                             operation = "LD [HL+], A";
                                             memory[HL] = A;
                                             HL += 1;
-                                            cycleLength = 8;
                                             break;
                                         case 3:
                                             operation = "LD [HL-], A";
                                             memory[HL] = A;
                                             HL -= 1;
-                                            cycleLength = 8;
+                                            
                                             //DELETE BELOW
 
                                             //DELETE ABOVE
@@ -694,6 +749,7 @@ public class gbCPU {
                                     }
                                     break;
                             }
+                            cycleLength = 8;
                             break;
                         case 3:
                             // Z is 3
@@ -711,6 +767,7 @@ public class gbCPU {
                                     break;
                             }
                             set_table_rp(p, (ushort)(get_table_rp(p) + numToAdd));
+                            cycleLength = 8;
                             break;
                         case 4:
                             // Z is 4
@@ -722,6 +779,11 @@ public class gbCPU {
                             set_table_r(y, added);
                             flag_z = (added == 0);
                             unknownOP = false;
+                            cycleLength = 4;
+                            if (y == 6)
+                            {
+                                cycleLength = 12;
+                            }
                             break;
                         case 5:
                             // Z is 5
@@ -733,6 +795,11 @@ public class gbCPU {
                             set_table_r(y, subtracted);
                             flag_z = (subtracted == 0);
                             unknownOP = false;
+                            cycleLength = 4;
+                            if(y == 6)
+                            {
+                                cycleLength = 12;
+                            }
                             break;
                         //Z is 6
                         case 6:
@@ -742,6 +809,11 @@ public class gbCPU {
                             unknownOP = false;
                             //data[0] = memory[PC + 1];
                             set_table_r(y, n);
+                            cycleLength = 8;
+                            if(y == 6)
+                            {
+                                cycleLength = 12;
+                            }
                             break;
                         case 7:
                             // Z is 7
@@ -749,15 +821,12 @@ public class gbCPU {
                             switch(y) {
                                 case 0:
                                     operation = "RLCA";
-                                    cycleLength = 4;
                                     break;
                                 case 1:
                                     operation = "RRCA";
-                                    cycleLength = 4;
                                     break;
                                 case 2:
                                     operation = "RLA";
-                                    cycleLength = 4;
                                     bool zState = flag_z;
                                     // 2(RL) and 7(A)
                                     do_rot(2,7);
@@ -767,26 +836,22 @@ public class gbCPU {
                                     break;
                                 case 3:
                                     operation = "RRA";
-                                    cycleLength = 4;
                                     break;
                                 case 4:
                                     operation = "DAA";
-                                    cycleLength = 4;
                                     break;
                                 case 5:
                                     operation = "CPL";
-                                    cycleLength = 4;
                                     break;
                                 case 6:
                                     operation = "SCF";
-                                    cycleLength = 4;
                                     break;
                                 case 7:
                                     operation = "CCF";
-                                    cycleLength = 4;
                                     break;
 
                             }
+                            cycleLength = 4;
                             break;
                     }
                     break;
@@ -803,7 +868,11 @@ public class gbCPU {
                     }
                     byte right = get_table_r(z);
                     set_table_r(y, right);
-
+                    cycleLength = 4;
+                    if(y == 6 || z == 6)
+                    {
+                        cycleLength = 8;
+                    }
                     break;
                 // X is 2
                 case 2:
@@ -838,6 +907,7 @@ public class gbCPU {
                                     opLength = 2;
                                     memory[0xFF00 + n] = A;
                                     unknownOP = false;
+                                    cycleLength = 8;
                                     break;
                                 case 5:
 
@@ -849,6 +919,7 @@ public class gbCPU {
                                     opLength = 2;
                                     A = memory[0xFF00 + n];
                                     unknownOP = false;
+                                    cycleLength = 8;
                                     break;
                                 case 7:
 
@@ -864,6 +935,7 @@ public class gbCPU {
                                     unknownOP = false;
                                     set_table_rp2(p, (ushort)(memory[SP] + (memory[SP + 1] * Math.Pow(2, 8))));
                                     SP += 2;
+                                    cycleLength = 12;
                                     break;
                                 case 1:
                                     switch(p) {
@@ -873,6 +945,7 @@ public class gbCPU {
                                             PC = (ushort)(memory[SP] + (memory[SP + 1] * Math.Pow(2, 8)));
                                             SP += 2;
                                             unknownOP = false;
+                                            cycleLength = 8;
                                             break;
                                         case 1:
 
@@ -901,12 +974,14 @@ public class gbCPU {
                                     opLength = 1;
                                     memory[0xFF00 + C] = A;
                                     unknownOP = false;
+                                    cycleLength = 8;
                                     break;
                                 case 5:
                                     operation = "LD " + String.Format("{0:X}", nn) + ",A";
                                     memory[nn] = A;
                                     unknownOP = false;
                                     opLength = 3;
+                                    cycleLength = 16;
                                     break;
                                 case 6:
 
@@ -945,6 +1020,7 @@ public class gbCPU {
                                     data = BitConverter.GetBytes(get_table_rp2(p));
                                     memory[SP] = data[0];
                                     memory[SP + 1] = data[1];
+                                    cycleLength = 16;
                                     break;
                                 case 1:
                                     if (p != 0) {
@@ -962,6 +1038,7 @@ public class gbCPU {
                                     memory[SP + 1] = nextAddress[1];
                                     PC = nn;
                                     unknownOP = false;
+                                    cycleLength = 12;
                                     break;
                             }
                             break;
