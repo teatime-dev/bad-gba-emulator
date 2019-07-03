@@ -406,7 +406,7 @@ public class gbCPU {
                 throw new NotImplementedException();
         }
     }
-    private void do_alu(int y, int z) {
+    private int do_alu(int y, int z, bool isHLorN) {
         byte r_value = (byte)z;
         //	alu[y] r[z]
         switch (y) {
@@ -418,7 +418,7 @@ public class gbCPU {
                 AddandCarry(ref A, r_value);
                 flag_n = false;
                 flag_z = A == 0;
-                return;
+                break;
             case 1:
                 //ADC A,
                 if (A + r_value > 0xff) {
@@ -427,7 +427,7 @@ public class gbCPU {
                 AddandCarry(ref A, (byte)(r_value + (flag_c ? 1 : 0)));
                 flag_n = false;
                 flag_z = A == 0;
-                return;
+                break;
             case 2:
                 //SUB
                 flag_n = true;
@@ -448,7 +448,7 @@ public class gbCPU {
                 flag_n = false;
                 flag_h = false;
                 flag_c = false;
-                return;
+                break;
             case 6:
                 //OR
                 throw new NotImplementedException();
@@ -466,6 +466,11 @@ public class gbCPU {
                 SubtractAndCarry(ref temp_a, r_value);
                 break;
         }
+        if (isHLorN)
+        {
+            return 8;
+        }
+        return 4;
     }
 
     //private ref byte
@@ -626,6 +631,7 @@ public class gbCPU {
                                     //SP = Convert.ToUInt16(data1 + data2 << 8);
                                     //TEMPORARY CODE
                                     unknownOP = false;
+                                    cycleLength = 12;
                                     break;
                                 case 1:
 
@@ -652,12 +658,13 @@ public class gbCPU {
                                             operation = "LD [HL+], A";
                                             memory[HL] = A;
                                             HL += 1;
+                                            cycleLength = 8;
                                             break;
                                         case 3:
                                             operation = "LD [HL-], A";
                                             memory[HL] = A;
                                             HL -= 1;
-
+                                            cycleLength = 8;
                                             //DELETE BELOW
 
                                             //DELETE ABOVE
@@ -801,7 +808,14 @@ public class gbCPU {
                 // X is 2
                 case 2:
                     operation = table_alu[y] + " " + table_r[z];
-                    do_alu(y, get_table_r(z));
+                    // Is the value from the HL pointer
+                    if(z == 6)
+                    {
+                        cycleLength = do_alu(y, get_table_r(z),true);
+                    } else
+                    {
+                        cycleLength = do_alu(y, get_table_r(z),false);
+                    }
                     unknownOP = false;
                     opLength = 1;
                     break;
@@ -956,7 +970,8 @@ public class gbCPU {
                             opLength = 2;
                             data[0] = memory[PC + 1];
                             operation = table_alu[y] + data[0];
-                            do_alu(y, data[0]);
+                            // the value is from a pointer
+                            cycleLength = do_alu(y, data[0],true);
                             unknownOP = false;
                             break;
                         case 7:
