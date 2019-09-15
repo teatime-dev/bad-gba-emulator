@@ -44,12 +44,26 @@ public class gbMemory {
             if(biosEnabled && key < 256) {
 
             } else {
-                if(key == 0xFF44) { // Scanline counter, if written to it's set to 0
+                if (key == 0xFF44)
+                { // Scanline counter, if written to it's set to 0
                     memoryRaw[key] = 0;
-                } else {
+                }
+                else if (key == 0xFF46)
+                { // Direct Memory Access Transfer
+                    ushort addressToWrite = (ushort)(value << 8);
+                    for( int i = 0; i < 0xA0; i++ )
+                    {
+                        // damn this feels strange but it should work??
+                        this[0xFE00 + i] = this[addressToWrite + i];
+                    }
+                }
+                else
+                {
                     memoryRaw[key] = value;
-                    if (biosEnabled) {
-                        if (memoryRaw[0xFF50] > 0) {
+                    if (biosEnabled)
+                    {
+                        if (memoryRaw[0xFF50] > 0)
+                        {
                             biosEnabled = false;
                             Console.WriteLine("BIOS disabled.");
                         }
