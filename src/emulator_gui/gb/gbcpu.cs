@@ -11,7 +11,6 @@ public class gbCPU {
         if ((rawValue & 0x80) == 0) {
             return rawValue;
         }
-
         // Otherwise perform the 2's complement math on the value
         return (byte)(~(rawValue - 0x01)) * -1;
     }
@@ -876,6 +875,7 @@ public class gbCPU {
                     break;
                 // X is 2
                 case 2:
+					
                     operation = table_alu[y] + " " + table_r[z];
                     // Is the value from the HL pointer
                     if(z == 6)
