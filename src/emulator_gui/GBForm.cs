@@ -36,5 +36,11 @@ namespace emulator_gui {
         private void gbPanel_Paint(object sender, PaintEventArgs e) {
             e.Graphics.DrawLine(new Pen(Color.Blue, 1), new Point(1, 2), new Point(2, 3));
         }
-    }
+
+		private void SDLTestToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			SDLGraphics testWindow = new SDLGraphics();
+			testWindow.Run();
+		}
+	}
 }
