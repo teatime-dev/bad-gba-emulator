@@ -21,7 +21,24 @@ namespace emulator_gui
 		}
 		public void Run()
 		{
-			if(SDL_Init(SDL_INIT_VIDEO) < 0)
+			Init();
+
+			SDL_Surface sur;
+			sur = (SDL_Surface)Marshal.PtrToStructure(screenSurface, typeof(SDL_Surface));
+			SDL_FillRect(screenSurface, IntPtr.Zero, SDL_MapRGB(sur.format, 0xFF, 0x12, 0xFF));
+
+			SDL_UpdateWindowSurface(window);
+
+//			SDL_Delay(2000);
+
+//			Close();
+
+			return;
+		}
+
+		private void Init()
+		{
+			if (SDL_Init(SDL_INIT_VIDEO) < 0)
 			{
 				throw new Exception("SDL Could not initialise!" + SDL_GetError());
 			}
@@ -31,21 +48,23 @@ namespace emulator_gui
 				throw new Exception("Window could not be created! SDL_Error: " + SDL_GetError());
 			}
 			screenSurface = SDL_GetWindowSurface(window);
+		}
+
+		public void setColor(byte r, byte g, byte b)
+		{
 			SDL_Surface sur;
 			sur = (SDL_Surface)Marshal.PtrToStructure(screenSurface, typeof(SDL_Surface));
-			SDL_FillRect(screenSurface, IntPtr.Zero, SDL_MapRGB(sur.format, 0xFF, 0x12, 0xFF));
+			SDL_FillRect(screenSurface, IntPtr.Zero, SDL_MapRGB(sur.format, r, g, b));
 
 			SDL_UpdateWindowSurface(window);
+		}
 
-			SDL_Delay(2000);
-
+		public void Close()
+		{
 			SDL_DestroyWindow(window);
 
 			SDL_Quit();
-
-			return;
 		}
-
 
 		public void handleEvent(SDL_Event Event)
 		{

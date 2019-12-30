@@ -15,11 +15,46 @@ public class gbLCD
 	/// <summary>
 	/// LCD Display bits, 0xFF40
 	/// </summary>
-	static int LCD_DISPLAY = 0xFF40; // LCD Display Status byte
+	static int LCD_CONTROL = 0xFF40; // LCD Display Status byte
+	enum LCD_CONTROL_BITS
+	{
+		/// <summary>
+		/// If false, dont draw anything
+		/// </summary>
+		DisplayEnable = 7,
+		/// <summary>
+		/// where the tile mapping (pointers to tiles) are for the window
+		/// </summary>
+		WindowTileMapDisplay = 6,
+		/// <summary>
+		/// If set, window is enabled
+		/// </summary>
+		WindowDisplayEnable = 5,
+		/// <summary>
+		/// where the tile data is
+		/// </summary>
+		BGWindowTileData = 4,
+		/// <summary>
+		/// where the tile mapping (pointers to tiles) are for the background
+		/// </summary>
+		BGTileMap = 3,
+		/// <summary>
+		/// size of sprites, set for 8x16 or cleared for 8x8
+		/// </summary>
+		SpriteSize = 2,
+		/// <summary>
+		/// if set, sprites arent drawn
+		/// </summary>
+		SpriteEnable = 1,
+		/// <summary>
+		/// if set, background isnt drawn
+		/// </summary>
+		BGDisplay = 0
+	}
 	/// <summary>
 	/// LCD Status/Control, 0xFF41
 	/// </summary>
-	static int LCD_STATUS = 0xFF41; // Status byte
+	static int LCD_STATUS = 0xFF41; // Control byte
 				/* 
 				Bit 7 - LCD Display Enable (0=Off, 1=On)
 				Bit 6 - Window Tile Map Display Select (0=9800-9BFF, 1=9C00-9FFF)
@@ -75,7 +110,7 @@ public class gbLCD
 			throw new ArgumentNullException(nameof(cpu));
 		}
 
-		return gbCPU.GetBit(cpu.memory[LCD_DISPLAY], 7);
+		return gbCPU.GetBit(cpu.memory[LCD_CONTROL], 7);
 	}
 	public void ProcessGraphics(int cycleLength)
 	{
@@ -176,7 +211,7 @@ public class gbLCD
 
 	private void drawScanline()
 	{
-		byte displayStatus = cpu.memory[LCD_DISPLAY];
+		byte displayStatus = cpu.memory[LCD_CONTROL];
 		// if background is enabled
 		if (gbCPU.GetBit(displayStatus, 0))
 		{
@@ -266,7 +301,18 @@ public class gbLCD
 		}
 		//Which row of the tiles is the scanline on right now?
 		ushort tileRow = Convert.ToUInt16(((yPos / 8) * 32));
+		for(int currentPixel = 0; currentPixel < 160; currentPixel++)
+		{
+			Byte xPos = Convert.ToByte(currentPixel + scrollX);
 
+			if(usingWindow)
+			{
+				if(currentPixel >= windowX)
+				{
+					xPos = currentPixel - windowX;
+				}
+			}
+		}
 		throw new NotImplementedException();
 	}
 }

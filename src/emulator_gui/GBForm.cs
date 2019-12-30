@@ -10,7 +10,8 @@ using System.Windows.Forms;
 
 namespace emulator_gui {
     public partial class GBForm : Form {
-        private gb gameboy;
+		SDLGraphics testWindow;
+		private gb gameboy;
         public GBForm() {
             InitializeComponent();
         }
@@ -37,10 +38,29 @@ namespace emulator_gui {
             e.Graphics.DrawLine(new Pen(Color.Blue, 1), new Point(1, 2), new Point(2, 3));
         }
 
-		private void SDLTestToolStripMenuItem_Click(object sender, EventArgs e)
+		private void RunToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			SDLGraphics testWindow = new SDLGraphics();
 			testWindow.Run();
+		}
+
+		private void StopToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			testWindow.Close();
+		}
+
+		private void StartToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			 testWindow = new SDLGraphics();
+		}
+
+		private void SetColorToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			Color a = new Color();
+			ColorDialog aa = new ColorDialog();
+			aa.ShowDialog();
+			a = aa.Color;
+			aa.Dispose();
+			testWindow.setColor(a.R, a.G, a.B);
 		}
 	}
 }

@@ -27,9 +27,13 @@
 			this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.openROMToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.goToGBToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.sDLTestToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.openGBRomDialog = new System.Windows.Forms.OpenFileDialog();
 			this.gbPanel = new System.Windows.Forms.Panel();
-			this.sDLTestToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.runToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.stopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.startToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.setColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.menuStrip1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -68,6 +72,17 @@
 			this.goToGBToolStripMenuItem.Text = "Go To GBA";
 			this.goToGBToolStripMenuItem.Click += new System.EventHandler(this.goToGBToolStripMenuItem_Click);
 			// 
+			// sDLTestToolStripMenuItem
+			// 
+			this.sDLTestToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.startToolStripMenuItem,
+            this.runToolStripMenuItem,
+            this.stopToolStripMenuItem,
+            this.setColorToolStripMenuItem});
+			this.sDLTestToolStripMenuItem.Name = "sDLTestToolStripMenuItem";
+			this.sDLTestToolStripMenuItem.Size = new System.Drawing.Size(62, 20);
+			this.sDLTestToolStripMenuItem.Text = "SDL Test";
+			// 
 			// openGBRomDialog
 			// 
 			this.openGBRomDialog.Filter = "GB Roms|*.gb|All files|*.*";
@@ -80,12 +95,33 @@
 			this.gbPanel.TabIndex = 2;
 			this.gbPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.gbPanel_Paint);
 			// 
-			// sDLTestToolStripMenuItem
+			// runToolStripMenuItem
 			// 
-			this.sDLTestToolStripMenuItem.Name = "sDLTestToolStripMenuItem";
-			this.sDLTestToolStripMenuItem.Size = new System.Drawing.Size(62, 20);
-			this.sDLTestToolStripMenuItem.Text = "SDL Test";
-			this.sDLTestToolStripMenuItem.Click += new System.EventHandler(this.SDLTestToolStripMenuItem_Click);
+			this.runToolStripMenuItem.Name = "runToolStripMenuItem";
+			this.runToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+			this.runToolStripMenuItem.Text = "Run";
+			this.runToolStripMenuItem.Click += new System.EventHandler(this.RunToolStripMenuItem_Click);
+			// 
+			// stopToolStripMenuItem
+			// 
+			this.stopToolStripMenuItem.Name = "stopToolStripMenuItem";
+			this.stopToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+			this.stopToolStripMenuItem.Text = "Stop";
+			this.stopToolStripMenuItem.Click += new System.EventHandler(this.StopToolStripMenuItem_Click);
+			// 
+			// startToolStripMenuItem
+			// 
+			this.startToolStripMenuItem.Name = "startToolStripMenuItem";
+			this.startToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+			this.startToolStripMenuItem.Text = "Start";
+			this.startToolStripMenuItem.Click += new System.EventHandler(this.StartToolStripMenuItem_Click);
+			// 
+			// setColorToolStripMenuItem
+			// 
+			this.setColorToolStripMenuItem.Name = "setColorToolStripMenuItem";
+			this.setColorToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+			this.setColorToolStripMenuItem.Text = "Set Color";
+			this.setColorToolStripMenuItem.Click += new System.EventHandler(this.SetColorToolStripMenuItem_Click);
 			// 
 			// GBForm
 			// 
@@ -112,5 +148,9 @@
         private System.Windows.Forms.OpenFileDialog openGBRomDialog;
         private System.Windows.Forms.Panel gbPanel;
 		private System.Windows.Forms.ToolStripMenuItem sDLTestToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem runToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem stopToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem startToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem setColorToolStripMenuItem;
 	}
 }
