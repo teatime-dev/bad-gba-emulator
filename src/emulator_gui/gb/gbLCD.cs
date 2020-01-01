@@ -110,7 +110,7 @@ public class gbLCD
 			throw new ArgumentNullException(nameof(cpu));
 		}
 
-		return gbCPU.GetBit(cpu.memory[LCD_CONTROL], 7);
+		return gbCPU.GetBit(cpu.memory[LCD_CONTROL], (int)LCD_CONTROL_BITS.DisplayEnable);
 	}
 	public void ProcessGraphics(int cycleLength)
 	{
@@ -211,14 +211,14 @@ public class gbLCD
 
 	private void drawScanline()
 	{
-		byte displayStatus = cpu.memory[LCD_CONTROL];
+		byte displayControl = cpu.memory[LCD_CONTROL];
 		// if background is enabled
-		if (gbCPU.GetBit(displayStatus, 0))
+		if (gbCPU.GetBit(displayControl, (int)LCD_CONTROL_BITS.BGDisplay))
 		{
 			drawTiles();
 		}
 		// if sprites are enabled
-		if (gbCPU.GetBit(displayStatus, 1))
+		if (gbCPU.GetBit(displayControl, (int)LCD_CONTROL_BITS.SpriteEnable))
 		{
 			drawSprites();
 		}
@@ -242,7 +242,7 @@ public class gbLCD
 
 		bool usingWindow = false;
 
-		if(gbCPU.GetBit(cpu.memory[LCD_STATUS],5))
+		if(gbCPU.GetBit(cpu.memory[LCD_CONTROL], (int)LCD_CONTROL_BITS.WindowDisplayEnable))
 		{
 			// Window is enabled
 			
@@ -253,7 +253,7 @@ public class gbLCD
 			}
 		}
 
-		if(gbCPU.GetBit(cpu.memory[LCD_STATUS], 4))
+		if(gbCPU.GetBit(cpu.memory[LCD_CONTROL], (int)LCD_CONTROL_BITS.BGWindowTileData))
 		{
 			//tile data starts at 0x8000
 			tileData = 0x8000;
@@ -269,7 +269,7 @@ public class gbLCD
 		if (!usingWindow)
 		{
 			
-			if(gbCPU.GetBit(cpu.memory[LCD_STATUS],3))
+			if(gbCPU.GetBit(cpu.memory[LCD_CONTROL],(int)LCD_CONTROL_BITS.BGTileMap))
 			{
 				backgroundMemory = 0x9C00;
 			} else
@@ -279,7 +279,7 @@ public class gbLCD
 
 		} else
 		{
-			if (gbCPU.GetBit(cpu.memory[LCD_STATUS], 6))
+			if (gbCPU.GetBit(cpu.memory[LCD_CONTROL], (int)LCD_CONTROL_BITS.WindowTileMapDisplay))
 			{
 				backgroundMemory = 0x9C00;
 			}
